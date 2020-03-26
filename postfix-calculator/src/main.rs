@@ -45,29 +45,24 @@ fn calculate(calculator: State<Calculator>) -> JsonValue {
     let mut mut_calculator = calculator.lock().unwrap();
     let mut mut_temp_stack = VecDeque::<String>::new();
     while mut_calculator.len() > 0 {
-        let front_pop = mut_calculator.pop_front();
-        match front_pop {
-            Some(popped) => {
-                if is_int(&popped) {
-                    mut_temp_stack.push_back(popped)
-                } else if is_operator(&popped) {
-                    if mut_temp_stack.len() > 1 {
-                        let second = mut_temp_stack.pop_back();
-                        let first = mut_temp_stack.pop_back();
-                        let result = action(
-                            first.unwrap().parse::<i64>().unwrap(),
-                            second.unwrap().parse::<i64>().unwrap(),
-                            &popped
-                        );
-                        mut_temp_stack.push_back(result.to_string());
-                    } else {
-                        println!("Temporary stack is size 1 or less.");
-                    }
-                } else {
-                    println!("Not an int or an operator.");
-                }
+        let popped = mut_calculator.pop_front().unwrap();
+        if is_int(&popped) {
+            mut_temp_stack.push_back(popped)
+        } else if is_operator(&popped) {
+            if mut_temp_stack.len() > 1 {
+                let second = mut_temp_stack.pop_back();
+                let first = mut_temp_stack.pop_back();
+                let result = action(
+                    first.unwrap().parse::<i64>().unwrap(),
+                    second.unwrap().parse::<i64>().unwrap(),
+                    &popped,
+                );
+                mut_temp_stack.push_back(result.to_string());
+            } else {
+                println!("Temporary stack is size 1 or less.");
             }
-            None => println!("Nothing popped.")
+        } else {
+            println!("Not an int or an operator.");
         }
     }
     let result = match mut_temp_stack.pop_front() {
