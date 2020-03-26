@@ -42,7 +42,38 @@ fn append(message: Json<Message>, calculator: State<Calculator>) -> JsonValue {
 #[get("/calculate", format = "json")]
 fn calculate(calculator: State<Calculator>) -> JsonValue {
     let mut mut_calculator = calculator.lock().unwrap();
-    json!({ "status": "ok" })
+    let mut first = None;
+    let mut second = None;
+    while (mut_calculator.len() > 0) {
+        let temp_pop = mut_calculator.pop();
+        match temp_pop {
+            Some(popped) => {
+                if first == None {
+                    first = Some(popped);
+                } else if second == None {
+                    second = Some(popped);
+                } else {
+                    // Is there a way in rust to do .get() similar to scala, I did a None check above
+                    // and just want to grab these values
+                    let result = match String::as_ref(&popped) {
+                        "*" => first.unwrap().parse::<u32>().unwrap() * second.unwrap().parse::<u32>().unwrap(),
+                        "/" => first.unwrap().parse::<u32>().unwrap() / second.unwrap().parse::<u32>().unwrap(),
+                        "+" => first.unwrap().parse::<u32>().unwrap() + second.unwrap().parse::<u32>().unwrap(),
+                        "-" => first.unwrap().parse::<u32>().unwrap() - second.unwrap().parse::<u32>().unwrap(),
+                        _ => 0,
+                    };
+                    first = Some(result.to_string());
+                    second = None;
+                }
+            }
+            None => println!("Nothing popped.")
+        }
+    }
+    let result = match first {
+        Some(val) => val.to_string(),
+        None => "nothing".to_string(),
+    };
+    json!({ "status":  result})
 }
 
 #[get("/", format = "json")]
